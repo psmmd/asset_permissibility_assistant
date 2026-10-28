@@ -1,0 +1,40 @@
+# Canonical values shared across the project: extraction enums, retrieval
+# metadata filters and rule documents. All data in this repository is synthetic.
+
+# Every policy in scope holds a dedicated portfolio (an individually managed
+# portfolio linked to the policy). Policy type is therefore fixed, not a variable.
+policy_type: dedicated
+
+countries:
+  IE: Ireland
+  LU: Luxembourg
+  IT: Italy
+
+products:
+  UL: Unit-linked investment policy
+  CB: Capitalisation bond
+  RP: Retirement policy
+
+asset_types:
+  listed_equity: Shares admitted to trading on a stock exchange, including listed REITs
+  ucits_fund: UCITS funds, including UCITS ETFs and UCITS money market funds
+  non_ucits_fund: Non-UCITS / alternative funds (AIFs, hedge funds, private equity, private debt, ELTIFs, non-UCITS real estate funds)
+  corporate_bond: Bonds issued by companies
+  government_bond: Bonds issued or guaranteed by governments or supranational bodies
+  structured_product: Structured notes and certificates with embedded derivatives
+  crypto_asset: Crypto-assets held directly or through exchange-traded products (ETPs/ETNs)
+  real_estate: Direct holdings of real property (land, buildings)
+  cash: Cash and deposits, including term deposits
+
+# Condition used by conditional rules. Each country defines it in rule XX-YY-02.
+investor_classifications:
+  retail: Any policyholder who does not meet the country's professional investor definition
+  professional: Policyholder meeting the country's professional investor definition
+
+decisions:
+  - permissible
+  - not_permissible
+  - needs_review
+
+# One rule document per country-product pair: data/rules/{country}_{product}.md
+rule_id_format: "{country}-{product}-{nn}"  # e.g. LU-UL-05
