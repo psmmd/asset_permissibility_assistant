@@ -19,6 +19,19 @@ class PipelineResult:
 def assess(text: str, model: str | None = None, top_k: int | None = None) -> PipelineResult:
     extraction, usage = extract(text, model=model)
 
+    # Injection guardrail, checked first: an attempt to steer the system is itself something a human must see,
+    # even if the decision step would have ignored it. Enforced here in code, not left to the prompt.
+    if extraction.instructions_to_system:
+        assessment = Assessment(
+            decision=Decision.NEEDS_REVIEW,
+            rule_ids=[],
+            justification="The request contains text addressed to the assessment system that tries to steer "
+            "the outcome or change the rules. It was not assessed automatically.",
+            missing_info=["Human review of the request and its embedded instructions"],
+            extracted=extraction,
+        )
+        return PipelineResult(assessment, [], usage)
+
     # Guardrail 1: without country and product we cannot filter, and unfiltered rules would mix regimes.
     missing = [f for f in ("country", "product") if getattr(extraction, f) is None]
     if missing:
