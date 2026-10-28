@@ -21,7 +21,7 @@ This document sets out which assets may be held in the dedicated portfolio linke
 ### LU-CB-01 — General eligibility
 - **Applies to:** all assets
 
-All assets must be held in the policy's dedicated portfolio, be legally owned by the insurer, be held in custody with the insurer's approved custodian bank and be managed by an investment manager approved by the insurer. An asset that cannot be held in custody by the custodian bank is not permissible.
+All assets must be held in the policy's dedicated portfolio, be legally owned by the insurer, be held in custody with the insurer's approved custodian bank and be managed by an investment manager approved by the insurer. An asset that cannot be held in custody by the custodian bank is not permissible. Custody, legal ownership and the manager appointment are verified by Operations when the trade is executed; the permissibility assessment assumes they are met unless the request indicates otherwise.
 
 ### LU-CB-02 — Investor classification
 - **Applies to:** all rules that depend on investor classification
