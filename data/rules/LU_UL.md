@@ -104,7 +104,7 @@ Cash and deposits in any freely convertible currency, including term deposits wi
 - **Status:** Not permitted
 
 The following are not permissible:
-1. Shares, bonds or other securities issued by a company in which the policyholder, the insured person, a beneficiary or a member of their close family holds 10% or more of the capital or voting rights, or exercises control.
+1. Shares, bonds or other securities issued by a company in which the policyholder, the insured person, a beneficiary or a member of their close family hold, individually or together, 10% or more of the capital or voting rights, or exercises control.
 2. Loans to any of those persons or to companies they control.
 3. Any asset that gives those persons personal use or benefit.
 
