@@ -48,8 +48,12 @@ for c in cases:
         if rid not in rule_ids:
             errors.append(f"{cid}: rule {rid} does not exist")
     ex = c["expected_extracted"]
-    for field, valid in [("country", countries), ("product", products), ("asset_type", asset_types),
-                         ("investor_classification", {"retail", "professional"})]:
+    for field, valid in [
+        ("country", countries),
+        ("product", products),
+        ("asset_type", asset_types),
+        ("investor_classification", {"retail", "professional"}),
+    ]:
         if ex[field] is not None and ex[field] not in valid:
             errors.append(f"{cid}: invalid {field} {ex[field]}")
     if ex["country"] and ex["product"] and c["expected_decision"] != "needs_review":

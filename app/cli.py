@@ -1,7 +1,7 @@
 """Run the pipeline from the command line.
 
-  uv run python -m app.cli TC01 TC13 TC26        # test cases from data/test_cases.jsonl
-  uv run python -m app.cli "free text request"   # any text
+uv run python -m app.cli TC01 TC13 TC26        # test cases from data/test_cases.jsonl
+uv run python -m app.cli "free text request"   # any text
 """
 
 import json
@@ -28,7 +28,9 @@ def main(args: list[str]) -> None:
         print("retrieved:", [r.rule_id for r in result.retrieved])
         if case:
             ok = result.assessment.decision == case["expected_decision"]
-            print(f"expected: {case['expected_decision']} {case['expected_rule_ids']} -> {'OK' if ok else 'MISMATCH'}")
+            print(
+                f"expected: {case['expected_decision']} {case['expected_rule_ids']} -> {'OK' if ok else 'MISMATCH'}"
+            )
         print()
 
 

@@ -48,7 +48,9 @@ class Extraction(BaseModel):
     asset_type: AssetType | None = Field(
         description="Asset type of the asset to assess. Null if it is not stated or fits none of the types."
     )
-    asset_description: str = Field(description="Short description of the asset, e.g. 'bitcoin ETP listed in Germany'.")
+    asset_description: str = Field(
+        description="Short description of the asset, e.g. 'bitcoin ETP listed in Germany'."
+    )
     investor_classification: InvestorClassification | None = Field(
         description="Only if the text explicitly states it. Do not derive it from wealth figures."
     )

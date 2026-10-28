@@ -34,12 +34,24 @@ EXTRACTED_FIELDS = ["country", "product", "asset_type", "investor_classification
 
 def run_case(case: dict, model: str, top_k: int, run: int) -> dict:
     row = {
-        "config": f"{model} (top_k={top_k})", "model": model, "top_k": top_k, "run": run,
-        "case_id": case["id"], "category": case["category"],
-        "expected_decision": case["expected_decision"], "expected_rule_ids": case["expected_rule_ids"],
+        "config": f"{model} (top_k={top_k})",
+        "model": model,
+        "top_k": top_k,
+        "run": run,
+        "case_id": case["id"],
+        "category": case["category"],
+        "expected_decision": case["expected_decision"],
+        "expected_rule_ids": case["expected_rule_ids"],
         "expected_extracted": case["expected_extracted"],
-        "decision": None, "rule_ids": [], "retrieved_ids": [], "extracted": None, "justification": "",
-        "latency_s": None, "input_tokens": 0, "output_tokens": 0, "error": None,
+        "decision": None,
+        "rule_ids": [],
+        "retrieved_ids": [],
+        "extracted": None,
+        "justification": "",
+        "latency_s": None,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "error": None,
     }
     start = time.perf_counter()
     try:
@@ -50,10 +62,13 @@ def run_case(case: dict, model: str, top_k: int, run: int) -> dict:
     a = result.assessment
     row.update(
         latency_s=time.perf_counter() - start,
-        decision=a.decision.value, rule_ids=a.rule_ids, justification=a.justification,
+        decision=a.decision.value,
+        rule_ids=a.rule_ids,
+        justification=a.justification,
         retrieved_ids=[r.rule_id for r in result.retrieved],
         extracted=a.extracted.model_dump(mode="json"),
-        input_tokens=result.usage.input_tokens, output_tokens=result.usage.output_tokens,
+        input_tokens=result.usage.input_tokens,
+        output_tokens=result.usage.output_tokens,
     )
     return row
 
@@ -64,16 +79,23 @@ def score(df: pd.DataFrame) -> pd.DataFrame:
     df["decision_ok"] = df["decision"] == df["expected_decision"]
     # Rules and retrieval are scored only where a definitive decision is expected.
     decided = df["expected_decision"] != "needs_review"
-    df["rules_ok"] = [set(e) <= set(c) if d else None
-                      for e, c, d in zip(df["expected_rule_ids"], df["rule_ids"], decided)]
-    df["retrieval_ok"] = [set(e) <= set(r) if d else None
-                          for e, r, d in zip(df["expected_rule_ids"], df["retrieved_ids"], decided)]
+    df["rules_ok"] = [
+        set(e) <= set(c) if d else None for e, c, d in zip(df["expected_rule_ids"], df["rule_ids"], decided)
+    ]
+    df["retrieval_ok"] = [
+        set(e) <= set(r) if d else None
+        for e, r, d in zip(df["expected_rule_ids"], df["retrieved_ids"], decided)
+    ]
     for field in EXTRACTED_FIELDS:
-        df[f"{field}_ok"] = [(x or {}).get(field) == e[field] for x, e in zip(df["extracted"], df["expected_extracted"])]
+        df[f"{field}_ok"] = [
+            (x or {}).get(field) == e[field] for x, e in zip(df["extracted"], df["expected_extracted"])
+        ]
     df["extraction_ok"] = df[[f"{f}_ok" for f in EXTRACTED_FIELDS]].mean(axis=1)
     price_in, price_out = zip(*(PRICES.get(m, (float("nan"),) * 2) for m in df["model"]))
-    df["cost_usd"] = (df["input_tokens"] * pd.Series(price_in, index=df.index)
-                      + df["output_tokens"] * pd.Series(price_out, index=df.index)) / 1e6
+    df["cost_usd"] = (
+        df["input_tokens"] * pd.Series(price_in, index=df.index)
+        + df["output_tokens"] * pd.Series(price_out, index=df.index)
+    ) / 1e6
     df["n_cited"] = df["rule_ids"].map(len)
     return df
 
@@ -84,17 +106,19 @@ def pct(x: float) -> str:
 
 def summary_table(df: pd.DataFrame) -> pd.DataFrame:
     by = df.groupby("config", sort=False)
-    return pd.DataFrame({
-        "Decision accuracy": by["decision_ok"].mean().map(pct),
-        "Rule accuracy": by["rules_ok"].apply(lambda s: s.dropna().astype(bool).mean()).map(pct),
-        "Retrieval recall": by["retrieval_ok"].apply(lambda s: s.dropna().astype(bool).mean()).map(pct),
-        "Extraction accuracy": by["extraction_ok"].mean().map(pct),
-        "Avg rules cited": by["n_cited"].mean().map("{:.1f}".format),
-        "Avg latency (s)": by["latency_s"].mean().map("{:.1f}".format),
-        "p95 latency (s)": by["latency_s"].quantile(0.95).map("{:.1f}".format),
-        "Cost / query (USD)": by["cost_usd"].mean().map("{:.4f}".format),
-        "Errors": by["error"].apply(lambda s: s.notna().sum()),
-    })
+    return pd.DataFrame(
+        {
+            "Decision accuracy": by["decision_ok"].mean().map(pct),
+            "Rule accuracy": by["rules_ok"].apply(lambda s: s.dropna().astype(bool).mean()).map(pct),
+            "Retrieval recall": by["retrieval_ok"].apply(lambda s: s.dropna().astype(bool).mean()).map(pct),
+            "Extraction accuracy": by["extraction_ok"].mean().map(pct),
+            "Avg rules cited": by["n_cited"].mean().map("{:.1f}".format),
+            "Avg latency (s)": by["latency_s"].mean().map("{:.1f}".format),
+            "p95 latency (s)": by["latency_s"].quantile(0.95).map("{:.1f}".format),
+            "Cost / query (USD)": by["cost_usd"].mean().map("{:.4f}".format),
+            "Errors": by["error"].apply(lambda s: s.notna().sum()),
+        }
+    )
 
 
 def baseline_section() -> list[str]:
@@ -108,11 +132,15 @@ def baseline_section() -> list[str]:
         "",
         "Changes between the baseline and the current results:",
         "",
-        ("1. **Exclusion rules clarified** (rules 12 and 14.3): an exclusion applies only when the request "
-         "indicates a link or personal use. Before, models escalated clean cases because no email confirms the "
-         "absence of a link (8 of 9 baseline failures)."),
-        ("2. **Reference expansion in retrieval**: rules cited by ID inside retrieved rules are also fetched "
-         "(e.g. LU-UL-05 depends on LU-UL-02). Before, the decision step could lack a definition it needed."),
+        (
+            "1. **Exclusion rules clarified** (rules 12 and 14.3): an exclusion applies only when the request "
+            "indicates a link or personal use. Before, models escalated clean cases because no email confirms the "
+            "absence of a link (8 of 9 baseline failures)."
+        ),
+        (
+            "2. **Reference expansion in retrieval**: rules cited by ID inside retrieved rules are also fetched "
+            "(e.g. LU-UL-05 depends on LU-UL-02). Before, the decision step could lack a definition it needed."
+        ),
         "",
     ]
 
@@ -121,8 +149,9 @@ def build_report(df: pd.DataFrame) -> str:
     df = score(df)
     by = df.groupby("config", sort=False)
     summary = summary_table(df)
-    by_category = df.pivot_table(index="config", columns="category", values="decision_ok",
-                                 aggfunc="mean", sort=False).map(pct)
+    by_category = df.pivot_table(
+        index="config", columns="category", values="decision_ok", aggfunc="mean", sort=False
+    ).map(pct)
     by_field = by[[f"{f}_ok" for f in EXTRACTED_FIELDS]].mean().map(pct)
     by_field.columns = EXTRACTED_FIELDS
 
@@ -130,21 +159,29 @@ def build_report(df: pd.DataFrame) -> str:
     lines = [
         "# Benchmark results",
         "",
-        (f"Generated {date.today()} with `uv run python -m benchmark.run`. "
-         f"{df['case_id'].nunique()} test cases, {n_runs} run(s) per configuration. Raw rows: `results.jsonl`."),
+        (
+            f"Generated {date.today()} with `uv run python -m benchmark.run`. "
+            f"{df['case_id'].nunique()} test cases, {n_runs} run(s) per configuration. Raw rows: `results.jsonl`."
+        ),
         "",
         "## Summary",
         "",
         summary.to_markdown(),
         "",
         "- **Decision accuracy**: decision equals the expected one (all cases).",
-        ("- **Rule accuracy**: every expected rule ID is cited (cases not expected to be `needs_review`). "
-         "Extra correct-but-general citations are not penalised."),
-        ("- **Retrieval recall**: every expected rule ID is among the retrieved rules (same cases). "
-         "Separates retrieval misses from reasoning errors."),
+        (
+            "- **Rule accuracy**: every expected rule ID is cited (cases not expected to be `needs_review`). "
+            "Extra correct-but-general citations are not penalised."
+        ),
+        (
+            "- **Retrieval recall**: every expected rule ID is among the retrieved rules (same cases). "
+            "Separates retrieval misses from reasoning errors."
+        ),
         "- **Extraction accuracy**: share of the 4 extracted fields matching the label.",
-        ("- **Cost / query**: Claude tokens x list price; output includes thinking tokens. "
-         "Query embeddings (~50 tokens) are excluded as negligible."),
+        (
+            "- **Cost / query**: Claude tokens x list price; output includes thinking tokens. "
+            "Query embeddings (~50 tokens) are excluded as negligible."
+        ),
         "",
         *baseline_section(),
         "## Decision accuracy by category",

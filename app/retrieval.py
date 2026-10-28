@@ -24,7 +24,9 @@ def build_query(extraction: Extraction) -> str:
     return ". ".join(p for p in parts if p)
 
 
-def retrieve(extraction: Extraction, country: Country, product: Product, top_k: int | None = None) -> list[Rule]:
+def retrieve(
+    extraction: Extraction, country: Country, product: Product, top_k: int | None = None
+) -> list[Rule]:
     # Hard filter on metadata: rules from another country or product must never reach the decision step.
     filters = MetadataFilters(
         filters=[MetadataFilter(key="country", value=country), MetadataFilter(key="product", value=product)]

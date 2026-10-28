@@ -40,11 +40,13 @@ def assess(text: str, model: str | None = None, top_k: int | None = None) -> Pip
     retrieved_ids = {r.rule_id for r in rules}
     invented = [rid for rid in output.rule_ids if rid not in retrieved_ids]
     if invented:
-        output = output.model_copy(update={
-            "decision": Decision.NEEDS_REVIEW,
-            "rule_ids": [rid for rid in output.rule_ids if rid in retrieved_ids],
-            "justification": f"Escalated: the model cited rules that were not retrieved ({', '.join(invented)}). "
-            f"Original justification: {output.justification}",
-        })
+        output = output.model_copy(
+            update={
+                "decision": Decision.NEEDS_REVIEW,
+                "rule_ids": [rid for rid in output.rule_ids if rid in retrieved_ids],
+                "justification": f"Escalated: the model cited rules that were not retrieved ({', '.join(invented)}). "
+                f"Original justification: {output.justification}",
+            }
+        )
 
     return PipelineResult(Assessment(**output.model_dump(), extracted=extraction), rules, usage)

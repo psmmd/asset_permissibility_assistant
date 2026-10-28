@@ -23,7 +23,9 @@ engine = create_engine(connection_string(), pool_pre_ping=True)
 
 
 class AssessRequest(BaseModel):
-    text: str = Field(min_length=1, max_length=10_000, description="Free-text request, e.g. an email from an RM.")
+    text: str = Field(
+        min_length=1, max_length=10_000, description="Free-text request, e.g. an email from an RM."
+    )
 
 
 # Sync endpoints: FastAPI runs them in a thread pool, and the Anthropic and LlamaIndex clients we use are sync.

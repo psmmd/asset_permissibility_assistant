@@ -39,5 +39,10 @@ def format_user_message(text: str, extraction: Extraction, rules: list[Rule]) ->
 def decide(
     text: str, extraction: Extraction, rules: list[Rule], model: str | None = None
 ) -> tuple[DecisionOutput, Usage]:
-    return parse(SYSTEM_PROMPT, format_user_message(text, extraction, rules), DecisionOutput,
-                 effort="medium", model=model)
+    return parse(
+        SYSTEM_PROMPT,
+        format_user_message(text, extraction, rules),
+        DecisionOutput,
+        effort="medium",
+        model=model,
+    )
