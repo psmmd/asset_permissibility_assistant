@@ -3,12 +3,14 @@
 import logging
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import create_engine, text
 
+from app.config import settings
 from app.pipeline import assess
+from app.rate_limit import RateLimiter
 from app.schemas import Assessment
 from app.store import connection_string
 
@@ -20,6 +22,7 @@ app = FastAPI(
     description="Checks whether an asset is permissible in an insurance policy, based on synthetic rules documents.",
 )
 engine = create_engine(connection_string(), pool_pre_ping=True)
+limiter = RateLimiter(settings.rate_limit_per_minute, settings.rate_limit_per_day)
 
 
 class AssessRequest(BaseModel):
@@ -30,9 +33,12 @@ class AssessRequest(BaseModel):
 
 # Sync endpoints: FastAPI runs them in a thread pool, and the Anthropic and LlamaIndex clients we use are sync.
 @app.post("/assess", response_model=Assessment)
-def assess_endpoint(request: AssessRequest) -> Assessment:
+def assess_endpoint(body: AssessRequest, request: Request) -> Assessment:
+    # The app is served directly (no proxy in front), so the socket address is the client's IP.
+    if not limiter.allow(request.client.host if request.client else "unknown"):
+        raise HTTPException(status_code=429, detail="Too many requests, please try again later.")
     try:
-        return assess(request.text).assessment
+        return assess(body.text).assessment
     except Exception as exc:
         logger.exception("Assessment failed")
         raise HTTPException(status_code=502, detail=f"Assessment failed: {type(exc).__name__}") from exc

@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     embedding_dim: int = 1536  # must match embedding_model
     retrieval_top_k: int = 6
     database_url: str = "postgresql://app:app@localhost:5432/permissibility"
+    # Limits on POST /assess, which calls paid APIs. ~$0.001 per call with Haiku.
+    rate_limit_per_minute: int = 10
+    rate_limit_per_day: int = 1000
 
 
 settings = Settings()
