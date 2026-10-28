@@ -28,3 +28,7 @@ jobs:
       # No secrets needed: tests fake the LLM and the database. The benchmark is run manually.
       - name: Tests
         run: uv run pytest
+
+      # Checks the image still builds (deployment builds it for ARM64, see infra/).
+      - name: Docker build
+        run: docker build -t asset-permissibility-assistant .

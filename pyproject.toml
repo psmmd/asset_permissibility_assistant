@@ -9,11 +9,8 @@ dependencies = [
     "llama-index-core>=0.14.25",
     "llama-index-embeddings-openai>=0.7.0",
     "llama-index-vector-stores-postgres>=0.9.0",
-    "pandas>=3.1.0",
     "pydantic>=2.14.1",
     "pydantic-settings>=2.16.2",
-    "pyyaml>=6.0.3",
-    "tabulate>=0.10.0",
     "uvicorn>=0.54.0",
 ]
 
@@ -25,7 +22,15 @@ target-version = "py312"
 testpaths = ["tests"]
 
 [dependency-groups]
+benchmark = [
+    "pandas>=3.1.0",
+    "tabulate>=0.10.0",
+]
 dev = [
     "pytest>=9.2.0",
     "ruff>=0.17.3",
 ]
+
+[tool.uv]
+# Local development gets everything; the Docker image installs only runtime dependencies.
+default-groups = ["dev", "benchmark"]

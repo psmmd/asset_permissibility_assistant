@@ -1,0 +1,19 @@
+# Never bake secrets into the image; they are passed as environment variables at runtime.
+.env
+.env.*
+
+.git
+.github
+.venv
+**/__pycache__
+.pytest_cache
+.ruff_cache
+.DS_Store
+
+# Not needed at runtime
+benchmark
+docker
+docker-compose.yml
+infra
+scripts
+tests
