@@ -1,0 +1,57 @@
+#!/bin/bash
+# Runs once, on first boot. Installs Docker and a systemd service that runs the app.
+set -euo pipefail
+
+dnf install -y docker jq
+systemctl enable --now docker
+
+# Run on every (re)start of the service: fetch secrets, pull the image, sync the rules, start the app.
+# Each step retries through systemd until it works, so the order of deployment steps does not matter
+# (e.g. the server can boot before the image is pushed or the API keys are set).
+cat > /usr/local/bin/run-app.sh <<'SCRIPT'
+#!/bin/bash
+set -euo pipefail
+
+secret() {
+  aws secretsmanager get-secret-value --region ${region} --secret-id "$1" --query SecretString --output text
+}
+api_keys=$(secret ${api_keys_secret_arn})
+db=$(secret ${db_secret_arn})
+
+# Env file in /run (memory only), readable by root only.
+umask 077
+{
+  echo "ANTHROPIC_API_KEY=$(jq -r .ANTHROPIC_API_KEY <<< "$api_keys")"
+  echo "OPENAI_API_KEY=$(jq -r .OPENAI_API_KEY <<< "$api_keys")"
+  echo "DATABASE_URL=postgresql://$(jq -r '.username | @uri' <<< "$db"):$(jq -r '.password | @uri' <<< "$db")@${db_host}:5432/${db_name}"
+} > /run/app.env
+
+aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${registry}
+docker pull ${image}
+
+# Idempotent: replaces the rules in the database with those shipped in the image.
+docker run --rm --env-file /run/app.env ${image} python -m app.ingest \
+  || echo "Ingestion failed; starting with the rules already in the database"
+
+docker rm -f app 2>/dev/null || true
+exec docker run --rm --name app --env-file /run/app.env -p 80:8000 ${image}
+SCRIPT
+chmod 700 /usr/local/bin/run-app.sh
+
+cat > /etc/systemd/system/app.service <<'UNIT'
+[Unit]
+Description=Asset Permissibility Assistant
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+ExecStart=/usr/local/bin/run-app.sh
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now app.service

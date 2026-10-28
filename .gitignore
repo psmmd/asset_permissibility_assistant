@@ -12,3 +12,12 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+
+# Terraform: state and variable files can hold secrets and account details
+infra/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.tfstate.lock.info
+crash.log
