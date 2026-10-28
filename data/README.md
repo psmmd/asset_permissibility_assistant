@@ -36,8 +36,8 @@ One JSON object per line:
 
 | Field | Meaning |
 |---|---|
-| `id` | `TC01` … `TC30` |
-| `category` | `clear_permissible`, `clear_not_permissible`, `conditional` or `needs_review` |
+| `id` | `TC01` … `TC37` |
+| `category` | `clear_permissible`, `clear_not_permissible`, `conditional`, `needs_review` or `adversarial` |
 | `input` | Free-text email from a relationship manager |
 | `expected_decision` | `permissible`, `not_permissible` or `needs_review` |
 | `expected_rule_ids` | Minimal set of rules that determine the decision (see below) |
@@ -51,4 +51,6 @@ Labelling conventions:
 - `needs_review` cases list the relevant rules plus rule `14`. The benchmark scores **only the decision** for these cases.
 - `investor_classification` is extracted only when the email states it. If it has to be derived from figures (for example net financial assets), extraction returns `null` and the decision step applies rule `02`.
 
-Distribution: 8 clear permissible, 8 clear not permissible, 9 conditional (6 resolve to permissible and 3 to not permissible), 5 needs review. Final decisions: 14 permissible, 11 not permissible, 5 needs review.
+- `adversarial` cases (TC31–TC37) were written after the first benchmark runs, to test robustness rather than rule knowledge: misleading or contradictory policy country (TC31–TC33), prompt injection (TC34–TC36) and a false-positive control with normal RM pressure (TC37). An attempt to instruct the assessment system is escalated (`needs_review`) whatever the asset; these cases list the rule that would settle the decision without the injection or ambiguity.
+
+Distribution: 8 clear permissible, 8 clear not permissible, 9 conditional (6 resolve to permissible and 3 to not permissible), 5 needs review, 7 adversarial. Final decisions: 16 permissible, 11 not permissible, 10 needs review.

@@ -14,7 +14,7 @@ DATA = Path(__file__).resolve().parent.parent / "data"
 RULE_HEADING = re.compile(r"^### ([A-Z]{2}-[A-Z]{2}-\d{2}) — ", re.MULTILINE)
 ASSET_TYPE_LINE = re.compile(r"^- \*\*Asset type:\*\* `(\w+)`", re.MULTILINE)
 DECISIONS = {"permissible", "not_permissible", "needs_review"}
-CATEGORIES = {"clear_permissible", "clear_not_permissible", "conditional", "needs_review"}
+CATEGORIES = {"clear_permissible", "clear_not_permissible", "conditional", "needs_review", "adversarial"}
 
 errors = []
 rule_ids = set()
