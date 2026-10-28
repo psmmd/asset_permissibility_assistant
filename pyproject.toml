@@ -1,0 +1,30 @@
+[project]
+name = "asset-permissibility-assistant"
+version = "0.1.0"
+description = "LLM pipeline that checks whether an asset is permissible in an insurance policy, based on synthetic rules documents."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "anthropic>=2.3.0",
+    "fastapi>=0.162.0",
+    "llama-index-core>=0.14.25",
+    "llama-index-embeddings-openai>=0.7.0",
+    "llama-index-vector-stores-postgres>=0.9.0",
+    "pandas>=3.1.0",
+    "pydantic>=2.14.1",
+    "pydantic-settings>=2.16.2",
+    "pyyaml>=6.0.3",
+    "uvicorn>=0.54.0",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.3",
+]
