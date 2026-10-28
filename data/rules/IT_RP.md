@@ -97,7 +97,7 @@ The following are not permissible:
 2. Loans to any of those persons or to companies they control.
 3. Any asset that gives those persons personal use or benefit.
 
-This exclusion overrides any asset rule in section 3.
+This exclusion overrides any asset rule in section 3. It applies only where the request indicates a link between the issuer or borrower and the policyholder, the insured person, a beneficiary or their close family, or a personal use of the asset. Such links are declared at onboarding; if the request gives no indication of one, this exclusion does not apply.
 
 ### IT-RP-13 — Personal-use and collectible assets
 - **Applies to:** all assets
@@ -113,6 +113,6 @@ Art, antiques, jewellery, wine, classic or collector cars, yachts, aircraft, hor
 A case must be referred to Investment Compliance (outcome: **needs review**) when:
 1. The asset cannot be mapped to a single asset type covered by this document (for example physical commodities, exchange-traded commodities, convertible or other hybrid instruments).
 2. Information needed to apply a rule is missing or contradictory, including the investor classification, credit rating, listing status, capital protection level or portfolio exposure where a rule depends on it.
-3. It is unclear whether an exclusion under IT-RP-12 or IT-RP-13 applies.
+3. The request indicates a possible link or personal use, but it is unclear whether an exclusion under IT-RP-12 or IT-RP-13 applies.
 
 Missing facts must never be assumed.
