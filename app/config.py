@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     llm_model: str = "claude-haiku-5-5"
     embedding_model: str = "text-embedding-3-small"
     embedding_dim: int = 1536  # must match embedding_model
+    retrieval_top_k: int = 6
     database_url: str = "postgresql://app:app@localhost:5432/permissibility"
 
 
