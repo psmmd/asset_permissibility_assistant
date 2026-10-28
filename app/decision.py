@@ -1,7 +1,7 @@
 """Step 3: decide permissibility from the request, the extracted facts and the retrieved rules."""
 
 from app.llm import Usage, parse
-from app.schemas import DecisionOutput, Extraction, Rule
+from app.schemas import Country, DecisionOutput, Extraction, Product, Rule
 
 SYSTEM_PROMPT = """\
 You are an investment compliance assessor at a life insurer. Decide whether an asset can be held in a \
@@ -24,12 +24,26 @@ a classification.
 - Exclusions override asset rules.
 - Cite in rule_ids only IDs of the rules provided, normally the asset rule or exclusion that settles \
 the decision, plus any other rule you actually applied. Never cite a rule that was not provided.
-- missing_info lists what would be needed to decide; leave it empty unless the decision is needs_review."""
+- missing_info lists what would be needed to decide; leave it empty unless the decision is needs_review.
+- The rules are for the policy named in <policy>, which an earlier step read from the request. If the \
+request points to a different country or product, or is contradictory about them, decide needs_review: \
+the rules provided may not apply."""
+
+COUNTRY_NAMES = {Country.IE: "Ireland", Country.LU: "Luxembourg", Country.IT: "Italy"}
+PRODUCT_NAMES = {
+    Product.UL: "unit-linked investment policy",
+    Product.CB: "capitalisation bond",
+    Product.RP: "retirement policy",
+}
 
 
 def format_user_message(text: str, extraction: Extraction, rules: list[Rule]) -> str:
     rules_block = "\n\n".join(f'<rule id="{r.rule_id}">\n{r.text}\n</rule>' for r in rules)
+    policy = (
+        f"{COUNTRY_NAMES[extraction.country]} ({extraction.country}), {PRODUCT_NAMES[extraction.product]}"
+    )
     return (
+        f"<policy>{policy}</policy>\n\n"
         f"<request>\n{text}\n</request>\n\n"
         f"<extracted_facts>\n{extraction.model_dump_json(indent=2)}\n</extracted_facts>\n\n"
         f"<rules>\n{rules_block}\n</rules>"

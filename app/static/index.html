@@ -38,6 +38,8 @@
   .not_permissible { color: var(--no); background: var(--no-bg); }
   .needs_review { color: var(--review); background: var(--review-bg); }
   .meta { color: var(--muted); font-size: .875rem; margin-left: 8px; }
+  .policy { margin: 12px 0 0; color: var(--muted); }
+  .policy strong { color: var(--text); }
   h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 20px 0 6px; }
   .rule { display: inline-block; font-family: ui-monospace, Menlo, monospace; font-size: .85rem;
           border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; margin: 0 6px 6px 0; }
@@ -104,7 +106,15 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+const COUNTRIES = { IE: "Ireland", LU: "Luxembourg", IT: "Italy" };
+const PRODUCTS = { UL: "Unit-linked", CB: "Capitalisation bond", RP: "Retirement policy" };
+
 function render(a, seconds) {
+  // Show which rule set was applied, so a wrongly read country or product is easy to spot.
+  const { country, product } = a.extracted;
+  const policy = country && product
+    ? `${escapeHtml(COUNTRIES[country] || country)} · ${escapeHtml(PRODUCTS[product] || product)}`
+    : "not determined";
   const label = { permissible: "Permissible", not_permissible: "Not permissible", needs_review: "Needs review" }[a.decision];
   const rules = a.rule_ids.length
     ? a.rule_ids.map(r => `<span class="rule">${escapeHtml(r)}</span>`).join("")
@@ -115,6 +125,7 @@ function render(a, seconds) {
   resultEl.innerHTML = `
     <div class="panel">
       <span class="badge ${a.decision}">${label}</span><span class="meta">${seconds.toFixed(1)}s</span>
+      <p class="policy">Assessed against: <strong>${policy}</strong></p>
       <h2>Rules</h2>${rules}
       <h2>Justification</h2><p>${escapeHtml(a.justification)}</p>
       ${missing}

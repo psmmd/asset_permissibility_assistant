@@ -13,6 +13,9 @@ Field guidance:
 - country: the country of the insurer entity that issued the policy (IE, LU or IT). Ignore where the \
 client lives, their nationality, the RM's office and the fund's domicile.
 - product: UL = unit-linked investment policy, CB = capitalisation bond, RP = retirement or pension policy.
+- If the email mentions more than one policy and does not say which one will hold the asset, or \
+contradicts itself about the policy's country or product, use null for the field in doubt. A null is \
+escalated to a human; a wrong value applies the wrong rules.
 - asset_type: map the asset to one type. ETFs and money market funds that are UCITS are ucits_fund. \
 ELTIFs, AIFs, hedge funds and private equity funds are non_ucits_fund. Listed REITs are listed_equity. \
 Crypto ETPs/ETNs are crypto_asset. Direct property is real_estate. Use null if the asset fits none of \
