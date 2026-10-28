@@ -1,5 +1,6 @@
 """Step 2: retrieve the rules for the policy's country and product."""
 
+import re
 from functools import cache
 
 from llama_index.core import VectorStoreIndex
@@ -30,4 +31,20 @@ def retrieve(extraction: Extraction, country: Country, product: Product, top_k: 
     )
     retriever = get_index().as_retriever(similarity_top_k=top_k or settings.retrieval_top_k, filters=filters)
     results = retriever.retrieve(build_query(extraction))
-    return [Rule(rule_id=r.node.id_, text=r.node.get_content()) for r in results]
+    rules = [Rule(rule_id=r.node.id_, text=r.node.get_content()) for r in results]
+    return rules + fetch_referenced_rules(rules, country, product)
+
+
+def fetch_referenced_rules(rules: list[Rule], country: Country, product: Product) -> list[Rule]:
+    """Add rules cited by ID in the retrieved ones (e.g. LU-UL-05 says 'professional investor under LU-UL-02').
+
+    Similarity search does not follow these dependencies, so we resolve them explicitly. One level deep,
+    and only within the same document, which keeps the filter guarantee.
+    """
+    pattern = re.compile(rf"\b{country}-{product}-\d{{2}}\b")
+    have = {r.rule_id for r in rules}
+    referenced = sorted({rid for r in rules for rid in pattern.findall(r.text)} - have)
+    if not referenced:
+        return []
+    nodes = get_index().vector_store.get_nodes(node_ids=referenced)
+    return [Rule(rule_id=n.id_, text=n.get_content()) for n in sorted(nodes, key=lambda n: n.id_)]
