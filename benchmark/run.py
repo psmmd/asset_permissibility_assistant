@@ -21,6 +21,7 @@ from app.pipeline import assess
 ROOT = Path(__file__).resolve().parent.parent
 TEST_CASES = ROOT / "data" / "test_cases.jsonl"
 RAW = Path(__file__).parent / "results.jsonl"
+BASELINE = Path(__file__).parent / "results_baseline.jsonl"  # first run, before the fixes described below
 REPORT = Path(__file__).parent / "results.md"
 
 # USD per million tokens (input, output). Output includes thinking tokens.
@@ -81,10 +82,9 @@ def pct(x: float) -> str:
     return f"{x:.0%}"
 
 
-def build_report(df: pd.DataFrame) -> str:
-    df = score(df)
+def summary_table(df: pd.DataFrame) -> pd.DataFrame:
     by = df.groupby("config", sort=False)
-    summary = pd.DataFrame({
+    return pd.DataFrame({
         "Decision accuracy": by["decision_ok"].mean().map(pct),
         "Rule accuracy": by["rules_ok"].apply(lambda s: s.dropna().astype(bool).mean()).map(pct),
         "Retrieval recall": by["retrieval_ok"].apply(lambda s: s.dropna().astype(bool).mean()).map(pct),
@@ -95,6 +95,32 @@ def build_report(df: pd.DataFrame) -> str:
         "Cost / query (USD)": by["cost_usd"].mean().map("{:.4f}".format),
         "Errors": by["error"].apply(lambda s: s.notna().sum()),
     })
+
+
+def baseline_section() -> list[str]:
+    if not BASELINE.exists():
+        return []
+    baseline = summary_table(score(pd.read_json(BASELINE, lines=True)))
+    return [
+        "## Baseline (before fixes)",
+        "",
+        baseline.to_markdown(),
+        "",
+        "Changes between the baseline and the current results:",
+        "",
+        ("1. **Exclusion rules clarified** (rules 12 and 14.3): an exclusion applies only when the request "
+         "indicates a link or personal use. Before, models escalated clean cases because no email confirms the "
+         "absence of a link (8 of 9 baseline failures)."),
+        ("2. **Reference expansion in retrieval**: rules cited by ID inside retrieved rules are also fetched "
+         "(e.g. LU-UL-05 depends on LU-UL-02). Before, the decision step could lack a definition it needed."),
+        "",
+    ]
+
+
+def build_report(df: pd.DataFrame) -> str:
+    df = score(df)
+    by = df.groupby("config", sort=False)
+    summary = summary_table(df)
     by_category = df.pivot_table(index="config", columns="category", values="decision_ok",
                                  aggfunc="mean", sort=False).map(pct)
     by_field = by[[f"{f}_ok" for f in EXTRACTED_FIELDS]].mean().map(pct)
@@ -120,6 +146,7 @@ def build_report(df: pd.DataFrame) -> str:
         ("- **Cost / query**: Claude tokens x list price; output includes thinking tokens. "
          "Query embeddings (~50 tokens) are excluded as negligible."),
         "",
+        *baseline_section(),
         "## Decision accuracy by category",
         "",
         by_category.to_markdown(),
