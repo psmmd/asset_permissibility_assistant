@@ -41,7 +41,7 @@ One JSON object per line:
 | `input` | Free-text email from a relationship manager |
 | `expected_decision` | `permissible`, `not_permissible` or `needs_review` |
 | `expected_rule_ids` | Minimal set of rules that determine the decision (see below) |
-| `expected_extracted` | Expected extraction: `country`, `product`, `asset_type`, `investor_classification` (`null` = not stated in the text) |
+| `expected_extracted` | Expected extraction: `country`, `product`, `asset_type`, `investor_classification` (`null` = not stated in the text, or an asset that maps to none of the 9 types, e.g. a painting or a gold ETC) |
 | `expected_missing_info` | For `needs_review` cases: the information that is missing |
 | `notes` | Why this is the right answer, and the trap the case tests |
 
